@@ -20,15 +20,18 @@ const sockets = [];
 
 wss.on('connection', (socket) => {
   sockets.push(socket);
-
+  socket['nickname'] = '게스트';
   console.log('open');
   socket.on('close', () => console.log('close'));
   socket.on('message', (message) => {
-    sockets.forEach((s) => s.send(`${message}`));
-    console.log(typeof message);
-    console.log(Object.keys(message));
-    console.log(Object.values(message));
-    console.log(`message : ${message}`);
+    const parsedMsg = JSON.parse(message);
+    if (parsedMsg.type === 'new_message') {
+      sockets.forEach((s) =>
+        s.send(`${socket.nickname}: ${parsedMsg.payload}`)
+      );
+    } else if (parsedMsg.type === 'nickname') {
+      socket['nickname'] = parsedMsg.payload;
+    }
   });
   socket.send('hello');
 });
