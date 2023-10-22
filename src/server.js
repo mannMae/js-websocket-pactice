@@ -13,10 +13,20 @@ app.get('/*', (_, res) => res.redirect('/'));
 const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
 
+let users = {};
+
 wsServer.on('connection', (socket) => {
   socket.on('join_room', (roomName) => {
-    socket.join(roomName);
-    socket.to(roomName).emit('welcome');
+    if (users.roomName >= 1) {
+      roomName = roomName + Number(users?.roomName / 2);
+      socket.join(roomName);
+      socket.to(roomName).emit('welcome');
+    } else {
+      console.log(roomName);
+      socket.join(roomName);
+      socket.to(roomName).emit('welcome');
+    }
+    users.roomName = users?.roomName === undefined ? 0 : 1;
   });
   socket.on('offer', (offer, roomName) => {
     socket.to(roomName).emit('offer', offer);
